@@ -4,7 +4,9 @@ import {
   adjustExerciseValue,
   createDraft,
   restoreAppState,
+  setExerciseCompletion,
   setExerciseValue,
+  setStretchCompletion,
   submitDraft
 } from './session.js';
 
@@ -14,6 +16,7 @@ let state = restoreAppState(localStorage.getItem(storageKey));
 let selectedDate = today();
 let draft = createDraft(state, selectedDate);
 let statusText = '';
+let warmupOpen = false;
 
 function today() {
   const date = new Date();
@@ -47,27 +50,51 @@ function targetLabel(exercise) {
 
 function renderWarmup(workout) {
   return workout.warmup
-    .map((item) => `<li><span>${item.label}</span><strong>${item.value}</strong></li>`)
+    .map((item) => `<li><div><span>${item.label}</span><strong>${item.value}</strong></div><em>${item.cue}</em></li>`)
     .join('');
 }
 
 function renderExercise(exercise) {
   const kind = valueKind(exercise);
+  const completed = exercise.completed === true;
   return `
-    <article class="exercise" data-testid="exercise-${exercise.id}">
+    <article class="exercise${completed ? ' is-complete' : ''}" data-testid="exercise-${exercise.id}">
       <div class="exercise-copy">
         <h2>${exercise.name}</h2>
         <p>${targetLabel(exercise)}</p>
       </div>
-      <div class="stepper">
-        <button type="button" data-action="decrease" data-id="${exercise.id}" aria-label="${exercise.name} ${kind} 내리기">−</button>
-        <label class="number-field">
-          <span class="sr-only">${exercise.name} ${kind}</span>
-          <input type="number" min="0" step="${exercise.step}" inputmode="decimal" value="${exercise.value}" data-action="input" data-id="${exercise.id}" aria-label="${exercise.name} ${kind}" />
-          <span>${exercise.unit}</span>
+      <div class="exercise-tools">
+        <label class="complete-toggle">
+          <input type="checkbox" data-action="exercise-complete" data-id="${exercise.id}" aria-label="${exercise.name} 완료"${completed ? ' checked' : ''} />
+          <span class="checkmark" aria-hidden="true">✓</span>
+          <span class="completion-label">${completed ? '완료' : '진행'}</span>
         </label>
-        <button type="button" data-action="increase" data-id="${exercise.id}" aria-label="${exercise.name} ${kind} 올리기">+</button>
+        <div class="stepper">
+          <button type="button" data-action="decrease" data-id="${exercise.id}" aria-label="${exercise.name} ${kind} 내리기">−</button>
+          <label class="number-field">
+            <span class="sr-only">${exercise.name} ${kind}</span>
+            <input type="number" min="0" step="${exercise.step}" inputmode="decimal" value="${exercise.value}" data-action="input" data-id="${exercise.id}" aria-label="${exercise.name} ${kind}" />
+            <span>${exercise.unit}</span>
+          </label>
+          <button type="button" data-action="increase" data-id="${exercise.id}" aria-label="${exercise.name} ${kind} 올리기">+</button>
+        </div>
       </div>
+    </article>`;
+}
+
+function renderStretch(stretch) {
+  const completed = stretch.completed === true;
+  return `
+    <article class="stretch-row${completed ? ' is-complete' : ''}" data-testid="stretching-${stretch.id}">
+      <div class="stretch-copy">
+        <h3>${stretch.name}</h3>
+        <p><strong>${stretch.dose}</strong> · ${stretch.cue}</p>
+      </div>
+      <label class="complete-toggle">
+        <input type="checkbox" data-action="stretch-complete" data-id="${stretch.id}" aria-label="${stretch.name} 완료"${completed ? ' checked' : ''} />
+        <span class="checkmark" aria-hidden="true">✓</span>
+        <span class="completion-label">${completed ? '완료' : '진행'}</span>
+      </label>
     </article>`;
 }
 
@@ -92,13 +119,26 @@ function render() {
         </div>
       </header>
 
-      <details class="warmup">
-        <summary>준비운동</summary>
+      <details class="warmup" data-testid="pre-workout-guide"${warmupOpen ? ' open' : ''}>
+        <summary>운동 전 준비동작</summary>
         <ol>${renderWarmup(workout)}</ol>
       </details>
 
       <section class="exercise-list" aria-label="운동 목록">
         ${draft.exercises.map(renderExercise).join('')}
+      </section>
+
+      <section class="stretching" data-testid="post-workout-stretching" aria-labelledby="stretching-title">
+        <div class="stretching-head">
+          <div>
+            <h2 id="stretching-title">스트레칭</h2>
+            <p>운동 후 · 선택</p>
+          </div>
+        </div>
+        <p class="stretch-note">근육이 따뜻한 운동 후 유연성을 위한 선택 루틴입니다. 반동 없이, 숨 참지 않기. 가벼운 당김만 유지하고 통증이나 저림이 있으면 중단하세요.</p>
+        <div class="stretch-list">
+          ${draft.stretches.map(renderStretch).join('')}
+        </div>
       </section>
 
       <footer class="actions">
@@ -134,8 +174,24 @@ app.addEventListener('input', (event) => {
   if (target.dataset.action === 'input') {
     draft = setExerciseValue(draft, target.dataset.id, target.value);
     markEditing();
+    return;
+  }
+  if (target.dataset.action === 'exercise-complete') {
+    draft = setExerciseCompletion(draft, target.dataset.id, target.checked);
+    statusText = '수정 중';
+    render();
+    return;
+  }
+  if (target.dataset.action === 'stretch-complete') {
+    draft = setStretchCompletion(draft, target.dataset.id, target.checked);
+    statusText = '수정 중';
+    render();
   }
 });
+
+app.addEventListener('toggle', (event) => {
+  if (event.target.dataset.testid === 'pre-workout-guide') warmupOpen = event.target.open;
+}, true);
 
 app.addEventListener('click', (event) => {
   const button = event.target.closest('button[data-action]');
