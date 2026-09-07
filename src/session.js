@@ -18,14 +18,22 @@ function savedValue(saved, fallback) {
   return Number.isFinite(parsed) ? Math.max(0, parsed) : fallback;
 }
 
+function savedReps(saved, fallback) {
+  if (fallback === null || saved?.reps == null || saved.reps === '') return fallback;
+  const parsed = Number(saved.reps);
+  return Number.isFinite(parsed) ? Math.max(0, Math.trunc(parsed)) : fallback;
+}
+
 function savedCompletion(saved) {
   return saved?.completed === true;
 }
 
+const isObjectItem = (item) => item !== null && typeof item === 'object' && !Array.isArray(item);
+
 function normalizeEntry(entry) {
   const workout = getWorkout(entry.workout);
-  const savedExercises = new Map(entry.exercises.map((exercise) => [exercise.id, exercise]));
-  const savedStretches = new Map(Array.isArray(entry.stretches) ? entry.stretches.map((stretch) => [stretch.id, stretch]) : []);
+  const savedExercises = new Map(entry.exercises.filter(isObjectItem).map((exercise) => [exercise.id, exercise]));
+  const savedStretches = new Map(Array.isArray(entry.stretches) ? entry.stretches.filter(isObjectItem).map((stretch) => [stretch.id, stretch]) : []);
 
   return {
     date: entry.date,
@@ -35,6 +43,7 @@ function normalizeEntry(entry) {
       return {
         ...exercise,
         value: savedValue(saved, exercise.value),
+        reps: savedReps(saved, exercise.reps),
         completed: savedCompletion(saved)
       };
     }),
@@ -78,14 +87,15 @@ export function createDraft(state, date, forcedWorkout = null) {
   const workout = forcedWorkout ?? (previousEntry(state, date) ? nextWorkout(previousEntry(state, date).workout) : 'A');
   const template = getWorkout(workout);
   const prior = previousWorkoutEntry(state, date, workout);
-  const priorValues = new Map((prior?.exercises ?? []).map((exercise) => [exercise.id, exercise.value]));
+  const priorValues = new Map((prior?.exercises ?? []).map((exercise) => [exercise.id, exercise]));
 
   return {
     date,
     workout,
     exercises: template.exercises.map((exercise) => ({
       ...exercise,
-      value: priorValues.has(exercise.id) ? priorValues.get(exercise.id) : exercise.value,
+      value: savedValue(priorValues.get(exercise.id), exercise.value),
+      reps: savedReps(priorValues.get(exercise.id), exercise.reps),
       completed: false
     })),
     stretches: getStretching().map((stretch) => ({
@@ -95,23 +105,21 @@ export function createDraft(state, date, forcedWorkout = null) {
   };
 }
 
-export function adjustExerciseValue(draft, exerciseId, direction) {
-  const sign = direction < 0 ? -1 : 1;
-  return {
-    ...draft,
-    exercises: draft.exercises.map((exercise) => exercise.id === exerciseId
-      ? { ...exercise, value: Math.max(0, exercise.value + exercise.step * sign) }
-      : { ...exercise })
-  };
+export function adjustExerciseValue(draft, exerciseId, direction, field = 'value') {
+  const exercise = draft.exercises.find((item) => item.id === exerciseId);
+  if (!exercise) return draft;
+  const step = field === 'reps' ? 1 : exercise.step;
+  return setExerciseValue(draft, exerciseId, exercise[field] + step * (direction < 0 ? -1 : 1), field);
 }
 
-export function setExerciseValue(draft, exerciseId, rawValue) {
+export function setExerciseValue(draft, exerciseId, rawValue, field = 'value') {
   const parsed = Number(rawValue);
-  if (!Number.isFinite(parsed)) return draft;
+  if (!['value', 'reps'].includes(field) || !Number.isFinite(parsed)) return draft;
+  const value = Math.max(0, field === 'reps' ? Math.trunc(parsed) : parsed);
   return {
     ...draft,
-    exercises: draft.exercises.map((exercise) => exercise.id === exerciseId
-      ? { ...exercise, value: Math.max(0, parsed) }
+    exercises: draft.exercises.map((exercise) => exercise.id === exerciseId && (field !== 'reps' || exercise.reps !== null)
+      ? { ...exercise, [field]: value }
       : { ...exercise })
   };
 }

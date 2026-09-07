@@ -32,6 +32,10 @@ test('운동 전 준비동작은 루틴별 준비세트와 짧은 자세 cue를 
   assert.equal(bWarmup.at(-1).value, '레그컬 10kg 12회 · 로우 25kg 10회');
 });
 
+test('앞허벅지 cue는 발목과 뒤꿈치의 실제 당기는 동작을 설명한다', () => {
+  assert.match(getStretching().find((item) => item.id === 'standing-quad').cue, /벽을 짚고 발목을 잡아 뒤꿈치를 엉덩이 쪽으로 당기기/);
+});
+
 test('운동 후 스트레칭은 모든 루틴에서 같은 선택 루틴이다', () => {
   assert.deepEqual(
     getStretching().map(({ name, dose }) => ({ name, dose })),

@@ -44,8 +44,7 @@ function valueKind(exercise) {
 }
 
 function targetLabel(exercise) {
-  const target = exercise.reps ? `${exercise.reps}회 × ${exercise.sets}` : `${exercise.sets}세트`;
-  return `${target} · 휴식 ${restLabel(exercise.rest)}`;
+  return `${exercise.sets}세트 · 휴식 ${restLabel(exercise.rest)}`;
 }
 
 function renderWarmup(workout) {
@@ -54,8 +53,23 @@ function renderWarmup(workout) {
     .join('');
 }
 
+function renderStepper(exercise, field = 'value') {
+  const kind = field === 'reps' ? '횟수' : valueKind(exercise);
+  const step = field === 'reps' ? 1 : exercise.step;
+  const unit = field === 'reps' ? '회' : exercise.unit;
+  return `
+    <div class="stepper">
+      <button type="button" data-action="decrease" data-id="${exercise.id}" data-field="${field}" aria-label="${exercise.name} ${kind} 내리기">−</button>
+      <label class="number-field">
+        <span class="sr-only">${exercise.name} ${kind}</span>
+        <input type="number" min="0" step="${step}" inputmode="${unit.startsWith('kg') ? 'decimal' : 'numeric'}" value="${exercise[field]}" data-action="input" data-id="${exercise.id}" data-field="${field}" aria-label="${exercise.name} ${kind}" />
+        <span>${unit}</span>
+      </label>
+      <button type="button" data-action="increase" data-id="${exercise.id}" data-field="${field}" aria-label="${exercise.name} ${kind} 올리기">+</button>
+    </div>`;
+}
+
 function renderExercise(exercise) {
-  const kind = valueKind(exercise);
   const completed = exercise.completed === true;
   return `
     <article class="exercise${completed ? ' is-complete' : ''}" data-testid="exercise-${exercise.id}">
@@ -63,21 +77,14 @@ function renderExercise(exercise) {
         <h2>${exercise.name}</h2>
         <p>${targetLabel(exercise)}</p>
       </div>
+      <label class="complete-toggle">
+        <input type="checkbox" data-action="exercise-complete" data-id="${exercise.id}" aria-label="${exercise.name} 완료"${completed ? ' checked' : ''} />
+        <span class="checkmark" aria-hidden="true">✓</span>
+        <span class="completion-label">${completed ? '완료' : '진행'}</span>
+      </label>
       <div class="exercise-tools">
-        <label class="complete-toggle">
-          <input type="checkbox" data-action="exercise-complete" data-id="${exercise.id}" aria-label="${exercise.name} 완료"${completed ? ' checked' : ''} />
-          <span class="checkmark" aria-hidden="true">✓</span>
-          <span class="completion-label">${completed ? '완료' : '진행'}</span>
-        </label>
-        <div class="stepper">
-          <button type="button" data-action="decrease" data-id="${exercise.id}" aria-label="${exercise.name} ${kind} 내리기">−</button>
-          <label class="number-field">
-            <span class="sr-only">${exercise.name} ${kind}</span>
-            <input type="number" min="0" step="${exercise.step}" inputmode="decimal" value="${exercise.value}" data-action="input" data-id="${exercise.id}" aria-label="${exercise.name} ${kind}" />
-            <span>${exercise.unit}</span>
-          </label>
-          <button type="button" data-action="increase" data-id="${exercise.id}" aria-label="${exercise.name} ${kind} 올리기">+</button>
-        </div>
+        ${renderStepper(exercise)}
+        ${exercise.reps !== null ? renderStepper(exercise, 'reps') : ''}
       </div>
     </article>`;
 }
@@ -172,7 +179,7 @@ app.addEventListener('input', (event) => {
     return;
   }
   if (target.dataset.action === 'input') {
-    draft = setExerciseValue(draft, target.dataset.id, target.value);
+    draft = setExerciseValue(draft, target.dataset.id, target.value, target.dataset.field);
     markEditing();
     return;
   }
@@ -187,6 +194,13 @@ app.addEventListener('input', (event) => {
     statusText = '수정 중';
     render();
   }
+});
+
+app.addEventListener('change', (event) => {
+  const target = event.target;
+  if (target.dataset.action !== 'input') return;
+  const exercise = draft.exercises.find((item) => item.id === target.dataset.id);
+  target.value = exercise[target.dataset.field];
 });
 
 app.addEventListener('toggle', (event) => {
@@ -211,7 +225,7 @@ app.addEventListener('click', (event) => {
   }
 
   if (action === 'increase' || action === 'decrease') {
-    draft = adjustExerciseValue(draft, button.dataset.id, action === 'increase' ? 1 : -1);
+    draft = adjustExerciseValue(draft, button.dataset.id, action === 'increase' ? 1 : -1, button.dataset.field);
     statusText = '수정 중';
     render();
     return;

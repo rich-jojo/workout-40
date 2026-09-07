@@ -41,7 +41,7 @@ summary:focus-visible {
   width: min(100%, 520px);
   min-height: 100vh;
   margin: 0 auto;
-  padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
+  padding: max(18px, env(safe-area-inset-top)) 18px calc(124px + env(safe-area-inset-bottom));
 }
 
 .date-nav {
@@ -211,12 +211,14 @@ summary:focus-visible {
 }
 
 .exercise-tools {
-  display: grid;
-  justify-items: end;
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .complete-toggle {
+  min-height: 44px;
   display: inline-grid;
   grid-template-columns: 34px auto;
   align-items: center;
@@ -267,13 +269,14 @@ summary:focus-visible {
 
 .stepper {
   display: grid;
-  grid-template-columns: 42px minmax(70px, auto) 42px;
+  flex: 1 1 148px;
+  grid-template-columns: 44px minmax(60px, 1fr) 44px;
   align-items: stretch;
   height: 46px;
 }
 
 .stepper button {
-  width: 42px;
+  width: 44px;
   border-radius: 7px;
   font-size: 24px;
   font-weight: 500;
@@ -290,8 +293,8 @@ summary:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 70px;
-  margin: 0 5px;
+  min-width: 0;
+  margin: 0 3px;
   border-bottom: 2px solid #161916;
   white-space: nowrap;
 }
@@ -413,8 +416,13 @@ summary:focus-visible {
 }
 
 .actions {
-  margin-top: 16px;
-  padding: 8px 0 max(14px, env(safe-area-inset-bottom));
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 5;
+  backdrop-filter: blur(12px);
+  padding: 8px 18px max(14px, env(safe-area-inset-bottom));
   border-top: 1px solid rgba(22, 25, 22, 0.08);
   background: rgba(242, 244, 242, 0.96);
 }
@@ -477,29 +485,13 @@ summary:focus-visible {
   }
 
   .exercise {
-    grid-template-columns: minmax(0, 1fr);
-    align-items: start;
+    align-items: center;
     padding-right: 10px;
     padding-left: 12px;
   }
 
-  .exercise-tools {
-    width: 100%;
-    grid-template-columns: auto auto;
-    align-items: center;
-    justify-content: space-between;
-  }
-
   .exercise h2 {
     font-size: 15px;
-  }
-
-  .stepper {
-    grid-template-columns: 38px minmax(62px, auto) 38px;
-  }
-
-  .stepper button {
-    width: 38px;
   }
 
   .stretch-row {

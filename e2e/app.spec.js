@@ -12,7 +12,7 @@ async function isGreenTinted(locator) {
 }
 
 test('앱을 열면 운동이 바로 보이고 중량을 ±로 저장·취소한다', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('./');
   await page.getByRole('textbox', { name: '날짜', exact: true }).fill('2026-09-03');
 
   await expect(page.getByRole('heading', { name: '운동 A' })).toBeVisible();
@@ -35,7 +35,7 @@ test('앱을 열면 운동이 바로 보이고 중량을 ±로 저장·취소한
 });
 
 test('본운동과 스트레칭은 각각 완료 체크와 명시 텍스트, 초록 상태를 갖는다', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('./');
   await page.getByRole('textbox', { name: '날짜', exact: true }).fill('2026-09-03');
 
   const legPress = page.getByTestId('exercise-leg-press');
@@ -61,7 +61,7 @@ test('본운동과 스트레칭은 각각 완료 체크와 명시 텍스트, 초
 });
 
 test('과거와 미래 날짜를 열어 저장한 기록을 다시 수정한다', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('./');
 
   await page.getByRole('textbox', { name: '날짜', exact: true }).fill('2020-01-01');
   await page.getByTestId('exercise-leg-press').getByRole('button', { name: '레그프레스 중량 올리기' }).click();
@@ -80,7 +80,7 @@ test('과거와 미래 날짜를 열어 저장한 기록을 다시 수정한다'
 });
 
 test('A/B 선택과 날짜 앞뒤 이동이 한 화면에서 동작한다', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('./');
   await page.getByRole('textbox', { name: '날짜', exact: true }).fill('2026-09-03');
   await page.getByRole('button', { name: 'B 루틴 선택' }).click();
   await expect(page.getByRole('heading', { name: '운동 B' })).toBeVisible();
@@ -92,7 +92,7 @@ test('A/B 선택과 날짜 앞뒤 이동이 한 화면에서 동작한다', asyn
 });
 
 test('운동 전 준비동작은 A/B 준비세트를 바꾸고 rerender 뒤에도 열린 상태를 유지한다', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('./');
   await page.getByRole('textbox', { name: '날짜', exact: true }).fill('2026-09-03');
 
   const guide = page.getByTestId('pre-workout-guide');
@@ -117,7 +117,7 @@ test('운동 전 준비동작은 A/B 준비세트를 바꾸고 rerender 뒤에�
 });
 
 test('운동 후 스트레칭은 본운동 뒤 별도 섹션으로 항상 보인다', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('./');
   await page.getByRole('textbox', { name: '날짜', exact: true }).fill('2026-09-03');
 
   const stretch = page.getByTestId('post-workout-stretching');
@@ -147,7 +147,7 @@ test('운동 후 스트레칭은 본운동 뒤 별도 섹션으로 항상 보인
 });
 
 test('완료 체크는 저장 후 다시 열면 복원되고 취소하면 저장 상태로 돌아간다', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('./');
   await page.getByRole('textbox', { name: '날짜', exact: true }).fill('2026-09-03');
   await page.getByTestId('exercise-leg-press').getByRole('checkbox', { name: '레그프레스 완료' }).check();
   await page.getByTestId('stretching-shoulder-cross-body').getByRole('checkbox', { name: '어깨 가로 당기기 완료' }).check();
@@ -166,7 +166,7 @@ test('완료 체크는 저장 후 다시 열면 복원되고 취소하면 저장
 });
 
 test('새 날짜와 강제 루틴 전환은 이전 완료 체크를 가져오지 않는다', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('./');
   await page.getByRole('textbox', { name: '날짜', exact: true }).fill('2026-09-03');
   await page.getByTestId('exercise-leg-press').getByRole('checkbox', { name: '레그프레스 완료' }).check();
   await page.getByTestId('stretching-shoulder-cross-body').getByRole('checkbox', { name: '어깨 가로 당기기 완료' }).check();
@@ -185,7 +185,7 @@ test('새 날짜와 강제 루틴 전환은 이전 완료 체크를 가져오지
 
 test('모바일에서 펼친 준비동작과 스트레칭은 가로 넘침 없이 마지막 줄까지 보인다', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 });
-  await page.goto('/');
+  await page.goto('./');
   await page.getByRole('textbox', { name: '날짜', exact: true }).fill('2026-09-03');
   await page.getByText('운동 전 준비동작').click();
 

@@ -16,7 +16,7 @@ const stretching = [
     id: 'standing-quad',
     name: '서서 앞허벅지 늘리기',
     dose: '좌우 30초씩 · 1회',
-    cue: '벽을 짚고 무릎을 모아 골반을 세우기'
+    cue: '벽을 짚고 발목을 잡아 뒤꿈치를 엉덩이 쪽으로 당기기'
   },
   {
     id: 'lying-hamstring',
