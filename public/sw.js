@@ -1,4 +1,4 @@
-const cacheName = 'workout-40-v1';
+const cacheName = 'workout-40-v3';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(cacheName).then((cache) => cache.addAll(['./', './manifest.webmanifest', './icon-192.png', './icon-512.png'])));

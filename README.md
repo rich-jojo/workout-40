@@ -2,6 +2,8 @@
 
 휴대폰에서 A/B 운동과 중량을 기록하는 정적 PWA입니다. 기록은 기기의 브라우저 저장소에만 보관됩니다.
 
+스트레칭 안내 참고: https://www.mayoclinic.org/healthy-lifestyle/fitness/in-depth/stretching/art-20047931
+
 ```bash
 npm install
 npm test
